@@ -1,5 +1,5 @@
 type: Direct Message
-Participants: P' Lom-nao, Preawah(Chloe / Vectra)
+participants: P' Lom-nao, Preawah(Chloe / Vectra)
 ---
 
 Pawhere~ 2025-06-23 12:05

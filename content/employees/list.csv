@@ -1,8 +1,9 @@
 id,name,email,position,gender
 0,Suwat Cheachiranon,CEO,MALE
 1,Jiratchaya Boriboonsawat,TALENT MANAGER,FEMALE
-2,Thamonwan Pattanaprasitchote,TALENT,FEMALE
-3,Nattharika Wanna,TALENT,FEMALE
-4,Christin Anne Laurent,TALENT,FEMALE
-5,Praewah Suwannakul,TALENT,FEMALE
-6,Potsawat Sae-yang,PUBLIC RELATION MANAGER,MALE
+2,Poomipat Mahathep,FINANCIAL MANAGER,MALE
+3,Potsawat Sae-yang,PUBLIC RELATION MANAGER,MALE
+4,Thamonwan Pattanaprasitchote,TALENT,FEMALE
+5,Nattharika Wanna,TALENT,FEMALE
+6,Christin Anne Laurent,TALENT,FEMALE
+7,Praewah Suwannakul,TALENT,FEMALE
