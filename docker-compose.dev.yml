@@ -1,0 +1,16 @@
+services:
+  db:
+    image: redis
+    restart: always
+    container_name: redis
+    ports:
+      - '6379:6379'
+    env_file:
+      - .env 
+    command: >
+      sh -c "redis-server --requirepass $$REDIS_PASSWORD"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
