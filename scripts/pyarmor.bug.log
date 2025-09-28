@@ -1,0 +1,12 @@
+[BUG]: out of license
+
+## Command Line
+/Users/jakka/Library/Python/3.9/bin/pyarmor gen --restrict --obf-code 2 --mix-str decoder.py
+
+## Environments
+Python 3.9.6
+Pyarmor 9.1.9 (trial), 000000, non-profits
+Platform darwin.aarch64
+Native darwin.arm64
+Home /Users/jakka/.pyarmor
+

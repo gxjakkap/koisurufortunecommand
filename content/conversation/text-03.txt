@@ -1,5 +1,5 @@
 type: Direct Message
-Participants: Mook(Thamonwan / Seraphine), Christin(Christin / Pixelle)
+participants: Mook(Thamonwan / Seraphine), Christin(Christin / Pixelle)
 ---
 
 pixie 2025-09-17 22:03
