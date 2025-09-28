@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'content/**'
+      - '.github/workflows/sync.yml'
 
 jobs:
   sync:
