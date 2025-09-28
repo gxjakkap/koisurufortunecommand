@@ -81,7 +81,6 @@ function SummaryPage() {
 
   return (
     <div className="w-full h-screen flex flex-col">
-      {/* Navbar */}
       <nav className="w-full bg-white shadow-sm border-b px-4 xl:px-16 py-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Koisuru fortune command</h1>
@@ -115,12 +114,12 @@ function SummaryPage() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {chartData.map((entry, index) => (
+                  {chartData.map((_entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value, name, props) => [
+                  formatter={(value, _name, props) => [
                     `${value} responses`, 
                     `${props.payload.answer}`
                   ]}
