@@ -34,8 +34,7 @@ function IndexPage() {
   const [resetGroupOpen, setResetGroupOpen] = useState<number | null>(null)
 
   if (!key) {
-    navigate("/no-access")
-    return
+    location.replace("/no-access")
   }
 
   const { data: res } = useQuery({
@@ -149,8 +148,6 @@ function IndexPage() {
           })}
         </div>
       </div>
-
-      {/* Group Reset Dialog */}
       <AlertDialog open={resetGroupOpen !== null} onOpenChange={(open) => !open && setResetGroupOpen(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

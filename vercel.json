@@ -1,5 +1,6 @@
 {
-  "rewrites":  [
+  "rewrites": [
     {"source": "/(.*)", "destination": "/"}
-  ]
+  ],
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- apps/web/ turbo.json package.json bun.lock"
 }

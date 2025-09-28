@@ -18,6 +18,10 @@ function SummaryPage() {
   const host = import.meta.env.VITE_KFCMD_API
   const navigate = useNavigate()
 
+  if (!key) {
+    location.replace("/no-access")
+  }
+
   const { data: res } = useQuery({
     queryKey: ["status"],
     queryFn: () => getAns(host, key || "")

@@ -84,7 +84,6 @@ const app = new Elysia()
       try {
         return JSON.parse(data)
       } catch {
-        // Handle legacy data format - convert to new format
         if (data === "-1") {
           return { ans: -1, submitTime: null }
         }
