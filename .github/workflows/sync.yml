@@ -1,0 +1,22 @@
+name: Sync content to kfcmd
+on:
+  push:
+    paths:
+      - 'content/**'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push to kfcmd
+        run: |
+          git clone --depth=1 https://x-access-token:${{ secrets.KFCMD_PAT }}@github.com/gxjakkap/kfcmd.git target
+          rsync -av --delete content/ target/
+          cd target
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Sync content from koisurufortunecommand" || echo "No changes"
+          git push origin main
