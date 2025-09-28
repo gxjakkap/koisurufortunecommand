@@ -16,7 +16,8 @@ if (!(await r.exists("API_KEY"))){
 
 for (let i = 0; i < 6; i++){
   if(!(await r.exists(i.toString()))){
-    await r.set(i.toString(), "-1")
+    const unsubmittedData = { ans: -1, submitTime: null }
+    await r.set(i.toString(), JSON.stringify(unsubmittedData))
     console.log(`seeding gid ${i}`)
   }
   else {
@@ -36,13 +37,30 @@ const app = new Elysia()
   }))
   .post("/submit", async ({ set, body }) => {
     const cur = await r.get(`${body.gid}`)
-    if (cur !== "-1") {
+    if (!cur) {
+      set.status = 404
+      return { m: "NOT_FOUND" }
+    }
+    
+    let currentData
+    try {
+      currentData = JSON.parse(cur)
+    } catch {
+      set.status = 500
+      return { m: "INVALID_DATA" }
+    }
+    
+    if (currentData.ans !== -1) {
       set.status = 403
       return { m: "FORBIDDEN" }
     }
 
     set.status = 201
-    await r.set(`${body.gid}`, body.ans.toString())
+    const answerData = {
+      ans: body.ans,
+      submitTime: new Date().toISOString()
+    }
+    await r.set(`${body.gid}`, JSON.stringify(answerData))
   }, { body: t.Object({ gid: t.Number(), ans: t.Number({ minimum: 0, maximum: 7 })}) })
 
   .get('/admin/get', async ({ set, headers }) => {
@@ -61,7 +79,20 @@ const app = new Elysia()
       r.get("5"),
     ])
 
-    return gRes
+    const parsedRes = gRes.map(data => {
+      if (!data) return { ans: -1, submitTime: null }
+      try {
+        return JSON.parse(data)
+      } catch {
+        // Handle legacy data format - convert to new format
+        if (data === "-1") {
+          return { ans: -1, submitTime: null }
+        }
+        return { ans: parseInt(data), submitTime: null }
+      }
+    })
+
+    return parsedRes
   }, { headers: t.Object({ authorization: t.String() })})
 
   .post('/admin/reset-all', async({ set, headers }) => {
@@ -71,17 +102,18 @@ const app = new Elysia()
       return { m: "FORBIDDEN" }
     }
 
+    const unsubmittedData = { ans: -1, submitTime: null }
     await Promise.all([
-      r.set("0", "-1"),
-      r.set("1", "-1"),
-      r.set("2", "-1"),
-      r.set("3", "-1"),
-      r.set("4", "-1"),
-      r.set("5", "-1"),
-      r.set("6", "-1"),
-      r.set("7", "-1"),
-      r.set("8", "-1"),
-      r.set("9", "-1"),
+      r.set("0", JSON.stringify(unsubmittedData)),
+      r.set("1", JSON.stringify(unsubmittedData)),
+      r.set("2", JSON.stringify(unsubmittedData)),
+      r.set("3", JSON.stringify(unsubmittedData)),
+      r.set("4", JSON.stringify(unsubmittedData)),
+      r.set("5", JSON.stringify(unsubmittedData)),
+      r.set("6", JSON.stringify(unsubmittedData)),
+      r.set("7", JSON.stringify(unsubmittedData)),
+      r.set("8", JSON.stringify(unsubmittedData)),
+      r.set("9", JSON.stringify(unsubmittedData)),
     ])
     return { m: "OK"}
   }, { headers: t.Object({ authorization: t.String() })})
@@ -98,7 +130,8 @@ const app = new Elysia()
       return { m: "Invalid Input" }
     }
 
-    await r.set(body.gid.toString(), "-1")
+    const unsubmittedData = { ans: -1, submitTime: null }
+    await r.set(body.gid.toString(), JSON.stringify(unsubmittedData))
 
     return { m: "OK" }
 

@@ -114,22 +114,39 @@ function IndexPage() {
 
       <div className="flex-1 flex flex-col justify-center px-4 xl:px-16">
         <div className="grid grid-cols-1 place-items-center md:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-4">
-          {data.map((x, i) => (
-            <ContextMenu key={i}>
-              <ContextMenuTrigger asChild>
-                <div className="aspect-square size-72 rounded-lg shadow-xl flex flex-col justify-center items-center gap-y-4 mx-4 my-4 cursor-context-menu hover:shadow-2xl transition-shadow">
-                  <span className="text-2xl font-medium">กลุ่ม {i}</span>
-                  {(parseInt(x) === -1) ? (<span className="text-lg">ยังไม่ได้ตอบ</span>) : (<span className="text-lg text-center">คำตอบ: {EMPLOYEES[parseInt(x)]['name']} {EMPLOYEES[parseInt(x)]['stage_name'] ? `(${EMPLOYEES[parseInt(x)]['stage_name']})` : ""}</span>)}
-                </div>
-              </ContextMenuTrigger>
-              <ContextMenuContent>
-                <ContextMenuItem onSelect={() => setResetGroupOpen(i)}>
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset Group {i}
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenu>
-          ))}
+          {data.map((answerData, i) => {
+            const isAnswered = answerData.ans !== -1
+            const answerValue = answerData.ans
+            const submitTime = answerData.submitTime
+            
+            return (
+              <ContextMenu key={i}>
+                <ContextMenuTrigger asChild>
+                  <div className="aspect-square size-72 rounded-lg shadow-xl flex flex-col justify-center items-center gap-y-4 mx-4 my-4 cursor-context-menu hover:shadow-2xl transition-shadow">
+                    <span className="text-2xl font-medium">กลุ่ม {i}</span>
+                    {!isAnswered ? (
+                      <span className="text-lg">ยังไม่ได้ตอบ</span>
+                    ) : (
+                      <div className="text-center">
+                        <span className="text-lg">คำตอบ: {EMPLOYEES[answerValue]['name']} {EMPLOYEES[answerValue]['stage_name'] ? `(${EMPLOYEES[answerValue]['stage_name']})` : ""}</span>
+                        {submitTime && (
+                          <div className="text-base text-gray-600 mt-2">
+                            {new Date(submitTime).toLocaleString('th-TH')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem onSelect={() => setResetGroupOpen(i)}>
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reset Group {i}
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            )
+          })}
         </div>
       </div>
 

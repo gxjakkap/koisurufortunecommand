@@ -31,7 +31,7 @@ function SummaryPage() {
   const data = res.data
   if (!data) return
 
-  const allEmpty = data.every(answer => answer === "-1")
+  const allEmpty = data.every(answer => answer.ans === -1)
   
   if (allEmpty) {
     return (
@@ -65,8 +65,9 @@ function SummaryPage() {
   }
 
   const answerCounts = data.reduce((acc, answer) => {
-    if (answer !== "-1") {
-      acc[answer] = (acc[answer] || 0) + 1
+    if (answer.ans !== -1) {
+      const answerValue = answer.ans.toString()
+      acc[answerValue] = (acc[answerValue] || 0) + 1
     }
     return acc
   }, {} as Record<string, number>)

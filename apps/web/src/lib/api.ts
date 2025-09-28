@@ -1,5 +1,10 @@
+export interface AnswerData {
+    ans: number
+    submitTime: string | null
+}
+
 interface AnsRes {
-    data: string[] | null
+    data: AnswerData[] | null
 }
 
 export const getAns = async(host: string, apiKey: string): Promise<AnsRes> => {
