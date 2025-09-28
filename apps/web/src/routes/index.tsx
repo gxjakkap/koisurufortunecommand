@@ -33,6 +33,11 @@ function IndexPage() {
   const [resetAllOpen, setResetAllOpen] = useState(false)
   const [resetGroupOpen, setResetGroupOpen] = useState<number | null>(null)
 
+  if (!key) {
+    navigate("/no-access")
+    return
+  }
+
   const { data: res } = useQuery({
     queryKey: ["status"],
     queryFn: () => getAns(host, key || "")
@@ -56,7 +61,7 @@ function IndexPage() {
 
   console.log(host)
 
-  if (!key || !res) {
+  if (!res) {
     navigate("/no-access")
     return
   }
