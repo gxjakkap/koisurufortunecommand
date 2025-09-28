@@ -6,6 +6,7 @@ import './index.css'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import IndexPage from './routes'
 import NoAccessPage from './routes/no-access'
+import SummaryPage from './routes/summary'
 
 
 const queryClient = new QueryClient()
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<IndexPage />} />
+          <Route path="/summary" element={<SummaryPage />} />
           <Route path="/no-access" element={<NoAccessPage />} />
         </Routes>
       </BrowserRouter>

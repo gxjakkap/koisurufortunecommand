@@ -1,18 +1,58 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router"
+import { RotateCcw, Trash2 } from "lucide-react"
+import { useState } from "react"
 
-import { getAns } from "@/lib/api"
+import { getAns, removeAns, resetAllAns } from "@/lib/api"
+import { Button } from "@/components/ui/button"
+import { 
+  ContextMenu, 
+  ContextMenuContent, 
+  ContextMenuItem, 
+  ContextMenuTrigger 
+} from "@/components/ui/context-menu"
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { EMPLOYEES } from "@/lib/emp_data"
 
 
 function IndexPage() {
   const key = localStorage.getItem("kfcmd_key")
   const host = import.meta.env.VITE_KFCMD_API
-  const { isPending, error, data: res } = useQuery({
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const [resetAllOpen, setResetAllOpen] = useState(false)
+  const [resetGroupOpen, setResetGroupOpen] = useState<number | null>(null)
+
+  const { data: res } = useQuery({
     queryKey: ["status"],
     queryFn: () => getAns(host, key || "")
   })
 
-  const navigate = useNavigate()
+  const resetMutation = useMutation({
+    mutationFn: (gid: number) => removeAns(host, key || "", gid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["status"] })
+      setResetGroupOpen(null)
+    }
+  })
+
+  const resetAllMutation = useMutation({
+    mutationFn: () => resetAllAns(host, key || ""),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["status"] })
+      setResetAllOpen(false)
+    }
+  })
 
   console.log(host)
 
@@ -26,17 +66,89 @@ function IndexPage() {
   if (!data) return
 
   return (
-    <div className="w-full h-screen flex flex-col justify-center px-4 xl:px-16">
-      <div className="grid grid-cols-1 place-items-center md:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-4">
-        {data.map((x, i) => (
-          <>
-            <div className="aspect-square size-72 rounded-lg shadow-xl flex flex-col justify-center items-center gap-y-4 mx-4 my-4">
-              <span className="text-2xl font-medium">กลุ่ม {i}</span>
-              <span className="text-lg">คำตอบ: {x}</span>
-            </div>
-          </>
-        ))}
+    <div className="w-full h-screen flex flex-col">
+      <nav className="w-full bg-white shadow-sm border-b px-4 xl:px-16 py-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Koisuru fortune command</h1>
+          <div className="flex gap-4">
+            <button 
+              onClick={() => navigate("/summary")}
+              className="px-4 text-black"
+            >
+              สรุป
+            </button>
+            <AlertDialog open={resetAllOpen} onOpenChange={setResetAllOpen}>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Reset คำตอบ
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action will reset all group answers. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => resetAllMutation.mutate()}
+                  disabled={resetAllMutation.isPending}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {resetAllMutation.isPending ? "Resetting..." : "Reset All"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          </div>
+        </div>
+      </nav>
+
+      <div className="flex-1 flex flex-col justify-center px-4 xl:px-16">
+        <div className="grid grid-cols-1 place-items-center md:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-4">
+          {data.map((x, i) => (
+            <ContextMenu key={i}>
+              <ContextMenuTrigger asChild>
+                <div className="aspect-square size-72 rounded-lg shadow-xl flex flex-col justify-center items-center gap-y-4 mx-4 my-4 cursor-context-menu hover:shadow-2xl transition-shadow">
+                  <span className="text-2xl font-medium">กลุ่ม {i}</span>
+                  {(parseInt(x) === -1) ? (<span className="text-lg">ยังไม่ได้ตอบ</span>) : (<span className="text-lg text-center">คำตอบ: {EMPLOYEES[parseInt(x)]['name']} {EMPLOYEES[parseInt(x)]['stage_name'] ? `(${EMPLOYEES[parseInt(x)]['stage_name']})` : ""}</span>)}
+                </div>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onSelect={() => setResetGroupOpen(i)}>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Reset Group {i}
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
+          ))}
+        </div>
       </div>
+
+      {/* Group Reset Dialog */}
+      <AlertDialog open={resetGroupOpen !== null} onOpenChange={(open) => !open && setResetGroupOpen(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Group {resetGroupOpen}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will reset the answer for group {resetGroupOpen}. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => resetGroupOpen !== null && resetMutation.mutate(resetGroupOpen)}
+              disabled={resetMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {resetMutation.isPending ? "Resetting..." : "Reset Group"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

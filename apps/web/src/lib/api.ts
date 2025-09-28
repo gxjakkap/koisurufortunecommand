@@ -17,7 +17,26 @@ interface RemAnsRes {
 }
 
 export const removeAns = async(host: string, apiKey: string, gid: number): Promise<RemAnsRes> => {
-    const res = await fetch(`${host}/admin/reset`, { headers: { "authorization": `${apiKey}` }, body: JSON.stringify({ gid: gid })})
+    const res = await fetch(`${host}/admin/reset`, { 
+        method: 'POST',
+        headers: { 
+            "authorization": `${apiKey}`,
+            "Content-Type": "application/json"
+        }, 
+        body: JSON.stringify({ gid: gid })
+    })
+    if (res.status !== 200) throw new Error(res.statusText)
+    else return { success: true }
+}
+
+export const resetAllAns = async(host: string, apiKey: string): Promise<RemAnsRes> => {
+    const res = await fetch(`${host}/admin/reset-all`, { 
+        method: 'POST',
+        headers: { 
+            "authorization": `${apiKey}`,
+            "Content-Type": "application/json"
+        }
+    })
     if (res.status !== 200) throw new Error(res.statusText)
     else return { success: true }
 }

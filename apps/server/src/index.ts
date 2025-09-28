@@ -7,6 +7,9 @@ import { logger } from '@grotto/logysia'
 const port = Number(Bun.env.PORT ?? "3000")
 const r = new RedisClient(Bun.env.REDIS_URL)
 
+// Store connected SSE clients
+const sseClients = new Set<ReadableStreamDefaultController>()
+
 if (!(await r.exists("API_KEY"))){
   console.log("API key not found! generating one...")
   const k = randomBytes(32).toString('hex')
@@ -25,6 +28,7 @@ for (let i = 0; i < 6; i++){
 }
 
 const app = new Elysia()
+  .use(cors())
   .use(logger({ 
     logIP: false,
     writer: {
@@ -92,18 +96,16 @@ const app = new Elysia()
       return { m: "FORBIDDEN" }
     }
 
-    if (!(await r.exists(body.gid))){
+    if (!(await r.exists(body.gid.toString()))){
       set.status = "Bad Request"
       return { m: "Invalid Input" }
     }
 
-    await r.set(body.gid, "-1")
+    await r.set(body.gid.toString(), "-1")
 
     return { m: "OK" }
 
-  }, { body: t.Object({ gid: t.String() }), headers: t.Object({ authorization: t.String() })})
-
-  .use(cors())
+  }, { body: t.Object({ gid: t.Number({ minimum: 0, maximum: 5 }) }), headers: t.Object({ authorization: t.String() })})
   .listen(port)
 console.log(
   `API is running at ${app.server?.hostname}:${app.server?.port}`
