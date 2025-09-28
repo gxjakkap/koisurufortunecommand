@@ -1,6 +1,8 @@
 name: Sync content to kfcmd
+
 permissions:
   contents: read
+
 on:
   push:
     paths:
@@ -11,16 +13,36 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Push to kfcmd
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get full history for better git operations
+      
+      - name: Clone target repository
         run: |
           git clone --depth=1 https://x-access-token:${{ secrets.KFCMD_PAT }}@github.com/gxjakkap/kfcmd.git target
-          rsync -av --delete content/* target/
+      
+      - name: Sync content and push changes
+        run: |
+          # Sync content
+          rsync -av --delete content/ target/
+          
+          # Navigate to target repo
           cd target
+          
+          # Configure git
           git config user.name "jakkabot"
           git config user.email "104683332+jakkabot@users.noreply.github.com"
+          
+          # Check if there are changes
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to sync"
+            exit 0
+          fi
+          
+          # Stage and commit changes
           git add .
-          git commit -m "Sync content from koisurufortunecommand" || echo "No changes"
+          git commit -m "Sync content"
+          
+          # Push changes
           git push origin main
-
