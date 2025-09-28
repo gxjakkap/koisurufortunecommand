@@ -7,9 +7,6 @@ import { logger } from '@grotto/logysia'
 const port = Number(Bun.env.PORT ?? "3000")
 const r = new RedisClient(Bun.env.REDIS_URL)
 
-// Store connected SSE clients
-const sseClients = new Set<ReadableStreamDefaultController>()
-
 if (!(await r.exists("API_KEY"))){
   console.log("API key not found! generating one...")
   const k = randomBytes(32).toString('hex')
