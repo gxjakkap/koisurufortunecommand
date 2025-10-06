@@ -24,14 +24,6 @@ jobs:
       
       - name: Sync content and push changes
         run: |
-          # Collect top-level items under content/ to limit staging and detection
-          mapfile -t CONTENT_ITEMS < <(cd content && find . -maxdepth 1 -mindepth 1 -printf '%P\n' | sort)
-          
-          if [ ${#CONTENT_ITEMS[@]} -eq 0 ]; then
-            echo "No items under content/ to sync"
-            exit 0
-          fi
-
           # Sync content
           rsync -av --delete content/ target/
           
@@ -42,14 +34,14 @@ jobs:
           git config user.name "jakkabot"
           git config user.email "104683332+jakkabot@users.noreply.github.com"
           
-          # Check if there are changes (only within content/ items)
-          if [ -z "$(git status --porcelain -- "${CONTENT_ITEMS[@]}")" ]; then
+          # Check if there are changes
+          if git diff --quiet && git diff --cached --quiet; then
             echo "No changes to sync"
             exit 0
           fi
           
-          # Stage and commit changes (only within content/ items)
-          git add -A -- "${CONTENT_ITEMS[@]}"
+          # Stage and commit changes
+          git add .
           git commit -m "Sync content"
           
           # Push changes

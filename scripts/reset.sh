@@ -15,3 +15,7 @@ rm -rf ./*
 tar -xzf ~/.oph-tmp/demo.tar.gz -C .
 
 rm -rf ~/.oph-tmp
+
+cp -Rn ./kfcmd-demo/* .
+
+rm -rf ./kfcmd-demo
