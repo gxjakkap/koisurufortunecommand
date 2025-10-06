@@ -14,6 +14,6 @@ tar -xzf ~/.oph-tmp/demo.tar.gz -C ~/oph2025
 
 rm -rf ~/.oph-tmp
 
-mv ~/oph2025/kfcmd-demo/** .
+cp -Rn ~/oph2025/kfcmd-demo/* ~/oph2025/
 
 rm -rf ~/oph2025/kfcmd-demo
