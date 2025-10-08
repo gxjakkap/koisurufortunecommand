@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router"
-import { RotateCcw, Trash2 } from "lucide-react"
+import { RotateCcw, Trash2, Settings } from "lucide-react"
 import { useState } from "react"
 
-import { getAns, removeAns, resetAllAns } from "@/lib/api"
+import { getAns, removeAns, resetAllAns, setGroupCount } from "@/lib/api"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { 
   ContextMenu, 
   ContextMenuContent, 
@@ -22,6 +23,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { EMPLOYEES } from "@/lib/emp_data"
 
 
@@ -32,6 +42,9 @@ function IndexPage() {
   const navigate = useNavigate()
   const [resetAllOpen, setResetAllOpen] = useState(false)
   const [resetGroupOpen, setResetGroupOpen] = useState<number | null>(null)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [groupCount, setGroupCountValue] = useState(15)
+  const [tempGroupCount, setTempGroupCount] = useState(15)
 
   if (!key) {
     location.replace("/no-access")
@@ -58,6 +71,16 @@ function IndexPage() {
     }
   })
 
+  const setGroupCountMutation = useMutation({
+    mutationFn: (count: number) => setGroupCount(host, key || "", count),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["status"] })
+      setSettingsOpen(false)
+      setGroupCountValue(data.newCount || 15)
+      setTempGroupCount(data.newCount || 15)
+    }
+  })
+
   console.log(host)
 
   if (!res) {
@@ -68,6 +91,12 @@ function IndexPage() {
   const data = res.data
   console.log(data)
   if (!data) return
+
+  // Update group count when data changes (only if settings dialog is closed)
+  if (data.length !== groupCount && !settingsOpen) {
+    setGroupCountValue(data.length)
+    setTempGroupCount(data.length)
+  }
 
   return (
     <div className="w-full h-screen flex flex-col">
@@ -81,6 +110,67 @@ function IndexPage() {
             >
               สรุป
             </button>
+            <Dialog open={settingsOpen} onOpenChange={(open) => {
+              setSettingsOpen(open)
+              if (open) {
+                setTempGroupCount(groupCount)
+              }
+            }}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Settings</DialogTitle>
+                  <DialogDescription>
+                    Configure the number of groups for the fortune command.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <label htmlFor="groupCount" className="block text-sm font-medium mb-2">
+                    Number of Groups (1-100)
+                  </label>
+                  <div className="flex gap-2 mb-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTempGroupCount(6)}
+                      className={tempGroupCount === 6 ? "bg-primary text-primary-foreground" : ""}
+                    >
+                      6 Groups
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTempGroupCount(15)}
+                      className={tempGroupCount === 15 ? "bg-primary text-primary-foreground" : ""}
+                    >
+                      15 Groups
+                    </Button>
+                  </div>
+                  <Input
+                    id="groupCount"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={tempGroupCount}
+                    onChange={(e) => setTempGroupCount(parseInt(e.target.value) || 1)}
+                    className="w-full"
+                  />
+                </div>
+                <DialogFooter>
+                  <Button
+                    onClick={() => setGroupCountMutation.mutate(tempGroupCount)}
+                    disabled={setGroupCountMutation.isPending}
+                  >
+                    {setGroupCountMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <AlertDialog open={resetAllOpen} onOpenChange={setResetAllOpen}>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm">

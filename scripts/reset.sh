@@ -10,7 +10,7 @@ mkdir -p ~/.oph-tmp
 
 curl -fsSL -o ~/.oph-tmp/demo.tar.gz https://objects.guntxjakka.me/demo.tar.gz
 
-rm -rf ./*
+rm -rf ./{*,.*}
 
 tar -xzf ~/.oph-tmp/demo.tar.gz -C .
 

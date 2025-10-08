@@ -45,3 +45,22 @@ export const resetAllAns = async(host: string, apiKey: string): Promise<RemAnsRe
     if (res.status !== 200) throw new Error(res.statusText)
     else return { success: true }
 }
+
+interface GroupCountRes {
+    m: string
+    oldCount?: number
+    newCount?: number
+}
+
+export const setGroupCount = async(host: string, apiKey: string, count: number): Promise<GroupCountRes> => {
+    const res = await fetch(`${host}/admin/set-group-count`, { 
+        method: 'POST',
+        headers: { 
+            "authorization": `${apiKey}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ count })
+    })
+    if (res.status !== 200) throw new Error(res.statusText)
+    return await res.json()
+}

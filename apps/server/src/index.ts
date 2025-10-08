@@ -14,7 +14,16 @@ if (!(await r.exists("API_KEY"))){
   console.log(`API Key set to ${k} . this will not be shown again in subsequent launch.`)
 }
 
-for (let i = 0; i < 6; i++){
+// Initialize group count if not exists
+if (!(await r.exists("GROUP_COUNT"))){
+  await r.set("GROUP_COUNT", "15")
+  console.log("Group count set to 15")
+}
+
+// Get current group count
+const groupCount = parseInt(await r.get("GROUP_COUNT") ?? "15")
+
+for (let i = 0; i < groupCount; i++){
   if(!(await r.exists(i.toString()))){
     const unsubmittedData = { ans: -1, submitTime: null }
     await r.set(i.toString(), JSON.stringify(unsubmittedData))
@@ -70,14 +79,10 @@ const app = new Elysia()
       return { m: "FORBIDDEN" }
     }
 
-    const gRes = await Promise.all([
-      r.get("0"),
-      r.get("1"),
-      r.get("2"),
-      r.get("3"),
-      r.get("4"),
-      r.get("5"),
-    ])
+    const currentGroupCount = parseInt(await r.get("GROUP_COUNT") ?? "15")
+    const gRes = await Promise.all(
+      Array.from({ length: currentGroupCount }, (_, i) => r.get(i.toString()))
+    )
 
     const parsedRes = gRes.map(data => {
       if (!data) return { ans: -1, submitTime: null }
@@ -101,19 +106,13 @@ const app = new Elysia()
       return { m: "FORBIDDEN" }
     }
 
+    const currentGroupCount = parseInt(await r.get("GROUP_COUNT") ?? "15")
     const unsubmittedData = { ans: -1, submitTime: null }
-    await Promise.all([
-      r.set("0", JSON.stringify(unsubmittedData)),
-      r.set("1", JSON.stringify(unsubmittedData)),
-      r.set("2", JSON.stringify(unsubmittedData)),
-      r.set("3", JSON.stringify(unsubmittedData)),
-      r.set("4", JSON.stringify(unsubmittedData)),
-      r.set("5", JSON.stringify(unsubmittedData)),
-      r.set("6", JSON.stringify(unsubmittedData)),
-      r.set("7", JSON.stringify(unsubmittedData)),
-      r.set("8", JSON.stringify(unsubmittedData)),
-      r.set("9", JSON.stringify(unsubmittedData)),
-    ])
+    await Promise.all(
+      Array.from({ length: currentGroupCount }, (_, i) => 
+        r.set(i.toString(), JSON.stringify(unsubmittedData))
+      )
+    )
     return { m: "OK"}
   }, { headers: t.Object({ authorization: t.String() })})
 
@@ -124,8 +123,14 @@ const app = new Elysia()
       return { m: "FORBIDDEN" }
     }
 
+    const currentGroupCount = parseInt(await r.get("GROUP_COUNT") ?? "15")
+    if (body.gid < 0 || body.gid >= currentGroupCount) {
+      set.status = 400
+      return { m: "Invalid Input" }
+    }
+
     if (!(await r.exists(body.gid.toString()))){
-      set.status = "Bad Request"
+      set.status = 400
       return { m: "Invalid Input" }
     }
 
@@ -134,7 +139,35 @@ const app = new Elysia()
 
     return { m: "OK" }
 
-  }, { body: t.Object({ gid: t.Number({ minimum: 0, maximum: 5 }) }), headers: t.Object({ authorization: t.String() })})
+  }, { body: t.Object({ gid: t.Number({ minimum: 0, maximum: 99 }) }), headers: t.Object({ authorization: t.String() })})
+
+  .post('/admin/set-group-count', async({ set, headers, body }) => {
+    const k = await r.get("API_KEY")
+    if (!timingSafeEqual(Buffer.from(headers.authorization), Buffer.from(k!))){
+      set.status = 403
+      return { m: "FORBIDDEN" }
+    }
+
+    if (body.count < 1 || body.count > 100) {
+      set.status = 400
+      return { m: "Invalid Input: count must be between 1 and 100" }
+    }
+
+    const oldCount = parseInt(await r.get("GROUP_COUNT") ?? "15")
+    await r.set("GROUP_COUNT", body.count.toString())
+
+    if (body.count > oldCount) {
+      const unsubmittedData = { ans: -1, submitTime: null }
+      await Promise.all(
+        Array.from({ length: body.count - oldCount }, (_, i) => 
+          r.set((oldCount + i).toString(), JSON.stringify(unsubmittedData))
+        )
+      )
+    }
+
+    return { m: "OK", oldCount, newCount: body.count }
+  }, { body: t.Object({ count: t.Number({ minimum: 1, maximum: 100 }) }), headers: t.Object({ authorization: t.String() })})
+
   .listen(port)
 console.log(
   `API is running at ${app.server?.hostname}:${app.server?.port}`
